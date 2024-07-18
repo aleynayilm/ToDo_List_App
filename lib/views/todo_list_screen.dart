@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:to_do_list_app/views/widgets/my_box.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:to_do_list_app/services/todo_service.dart';
+import 'package:to_do_list_app/views/widgets/alert_companent.dart';
 import 'package:to_do_list_app/views/widgets/todo_item.dart';
 
 class ToDoListScreen extends StatefulWidget {
@@ -9,32 +11,43 @@ class ToDoListScreen extends StatefulWidget {
   State<ToDoListScreen> createState() => _ToDoListScreenState();
 }
 
-final _controller = TextEditingController();
-
 class _ToDoListScreenState extends State<ToDoListScreen> {
-  List toDoList = [
-    ['Eat Healty', false],
-    ['Do Exercise', false]
-  ];
+  final _toDoBox = Hive.box('toDoBox');
+  ToDoDatabase database = ToDoDatabase();
+
+  @override
+  void initState() {
+    if (_toDoBox.get("TODOLIST") == null) {
+      database.createInitialData();
+    } else {
+      database.loadData();
+    }
+    super.initState();
+  }
+
+  final _controller = TextEditingController();
+
   void checkboxChanged(bool? value, int index) {
     setState(() {
-      toDoList[index][1] = !toDoList[index][1];
+      database.toDoList[index][1] = !database.toDoList[index][1];
     });
+    database.updateDatabase();
   }
 
   void saveNewTask() {
     setState(() {
-      toDoList.add([_controller.text, false]);
+      database.toDoList.add([_controller.text, false]);
     });
     Navigator.of(context).pop();
     _controller.clear();
+    database.updateDatabase();
   }
 
   void createNewTask() {
     showDialog(
       context: context,
       builder: (context) {
-        return MyBox(
+        return AlertCompanent(
           controller: _controller,
           onSaved: saveNewTask,
           onCancel: () => Navigator.of(context).pop(),
@@ -45,8 +58,9 @@ class _ToDoListScreenState extends State<ToDoListScreen> {
 
   void deleteTask(int index) {
     setState(() {
-      toDoList.removeAt(index);
+      database.toDoList.removeAt(index);
     });
+    database.updateDatabase();
   }
 
   @override
@@ -66,11 +80,11 @@ class _ToDoListScreenState extends State<ToDoListScreen> {
           child: const Icon(Icons.add),
         ),
         body: ListView.builder(
-          itemCount: toDoList.length,
+          itemCount: database.toDoList.length,
           itemBuilder: (context, index) {
             return ToDoItem(
-              taskName: toDoList[index][0],
-              isComplated: toDoList[index][1],
+              taskName: database.toDoList[index][0],
+              isComplated: database.toDoList[index][1],
               onChanged: (value) => checkboxChanged(value, index),
               deleteFunction: (context) => deleteTask(index),
             );

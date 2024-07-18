@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:to_do_list_app/views/widgets/my_button.dart';
 
-class MyBox extends StatelessWidget {
+class AlertCompanent extends StatelessWidget {
   final controller;
   VoidCallback onSaved;
   VoidCallback onCancel;
-  MyBox({
+  AlertCompanent({
     super.key,
     this.controller,
     required this.onSaved,
